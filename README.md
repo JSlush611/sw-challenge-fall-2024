@@ -30,6 +30,7 @@ python3 src/main.py
 ```
 
 **Sample Input/Output Interaction**:
+```bash
 Welcome to the CTG Data Processing Tool
 Enter the path to the raw data directory (e.g., ../data/raw): ../data/raw
 Enter the path to save cleaned data (e.g., ../data/cleaned): ../data/cleaned
@@ -41,22 +42,27 @@ Enter the start time (e.g., 2024-09-16 10:00:00): 2024-09-16 10:00:00
 Enter the end time (e.g., 2024-09-16 10:01:00): 2024-09-16 10:01:00
 Enter the time interval for OHLCV calculation (e.g., 15s, 1m, 1h): 15s
 OHLCV data successfully saved to 'ohlcv_20240916_100000_to_20240916_100100_15s.csv'.
+```
 
-
-**Project Structure**:
+### 📂 Project Structure:
+```bash
 .
 ├── data
-│   ├── logs                  # Directory for storing log files
-│   ├── raw                   # Directory for raw tick data (input)
-│   ├── cleaned               # Directory for cleaned data (output)
-│   ├── ohlcv                 # Directory for OHLCV output (output)
+│   ├── logs                  
+│   │   ├── cleaning           # Logs generated during data cleaning
+│   │   ├── loading            # Logs generated during data loading
+│   │   ├── transforming       # Logs generated during data transformation
+│   ├── raw                    # Directory for raw tick data (input)
+│   ├── cleaned                # Directory for cleaned data (output)
+│   ├── ohlcv                  # Directory for OHLCV output (output)
 ├── src
-│   ├── main.py               # Main script to run the program
-│   ├── data_loader.py        # Handles data loading and file management
-│   ├── data_cleaner.py       # Cleans the raw tick data
-│   ├── data_transformer.py   # Transforms cleaned tick data into OHLCV bars
-│   ├── util.py               # Utility functions, including logging setup
-└── README.md                 # This file
+│   ├── main.py                # Main script to run the program
+│   ├── data_loader.py         # Handles data loading and file management
+│   ├── data_cleaner.py        # Cleans the raw tick data
+│   ├── data_transformer.py    # Transforms cleaned tick data into OHLCV bars
+│   ├── util.py                # Utility functions, including logging setup
+└── README.md                  # This file
+```
 
 **Usage Guide**:
 1. Data Loading: The tool will prompt you to enter the path to the directory where your raw CSV files are stored. Each file is loaded, and data cleaning is applied before storing the cleaned data.
