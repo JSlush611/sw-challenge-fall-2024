@@ -1,14 +1,17 @@
 from data_loader import DataLoader
-from data_transofmer import DataTransformer
+from data_transformer import DataTransformer
 from datetime import datetime
 import os
+import time
 
 def main():
     print("Welcome to the CTG Data Processing Tool")
 
+    # Get data directories from user
     raw_data_dir = input("Enter the path to the raw data directory (e.g., ../data/raw): ").strip()
     cleaned_data_dir = input("Enter the path to save cleaned data (e.g., ../data/cleaned): ").strip()
 
+    # Check and create directories if necessary
     if not os.path.exists(raw_data_dir):
         print(f"Error: The raw data directory '{raw_data_dir}' does not exist.")
 
@@ -20,14 +23,20 @@ def main():
 
     data_loader = DataLoader(raw_data_dir, cleaned_data_dir)
 
+    start_time = time.time()  
     cleaned_data = data_loader.load_data()
     if not cleaned_data:
         print("No data loaded. Exiting.")
 
         return
     
-    data_loader.save_data_to_csv("cleaned_data_output.csv")
-    print("Cleaned data successfully saved to 'cleaned_data_output.csv'.")
+    end_time = time.time()
+    print(f"Data loading and cleaning completed in {end_time - start_time:.2f} seconds.")
+
+    output_file = f"cleaned_data_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv"
+    data_loader.save_data_to_csv(output_file)
+    print(f"Cleaned data successfully saved to '{output_file}'.")
+
     transformer = DataTransformer(cleaned_data)
     print("\nNext, let's configure the time range and interval for OHLCV data generation.")
 
@@ -43,20 +52,21 @@ def main():
                 print("Error: Start time must be before end time. Please try again.")
             else:
                 break
+
         except ValueError:
             print("Error: Invalid datetime format. Please enter the date and time in the format 'YYYY-MM-DD HH:MM:SS'.")
 
+    # Validate interval input and generate OHLCV data
     while True:
         interval = input("Enter the time interval for OHLCV calculation (e.g., 15s, 1m, 1h): ").strip()
-
         try:
             transformer.parse_interval(interval)  
 
             break  
+
         except ValueError as e:
             print(f"Error: {e}. Please enter a valid time interval (e.g., '15s', '1m', '1h').")
 
-    transformer = DataTransformer(cleaned_data)
     ohlcv_data = transformer.calculate_ohlcv(start_time, end_time, interval)
     if not ohlcv_data:
         print("No OHLCV data calculated. Exiting.")
@@ -65,7 +75,7 @@ def main():
 
     print("\nSaving OHLCV data...")
     transformer.save_ohlcv_to_csv(ohlcv_data, start_time, end_time, interval)
-    print("OHLCV data successfully saved.")
+    print(f"OHLCV data successfully saved to '{output_file}'.")
 
 if __name__ == "__main__":
     main()

@@ -1,19 +1,11 @@
 import os
 import csv
 import concurrent.futures
-import logging
+import time
 from data_cleaner import DataCleaner
+from util import setup_logger
 
-logger = logging.getLogger('DataLoader')
-logger.setLevel(logging.INFO)
-
-if not logger.handlers:
-    log_file = '../data/logs/loading/data_loader.log'
-    os.makedirs(os.path.dirname(log_file), exist_ok=True)
-    file_handler = logging.FileHandler(log_file, mode='w')
-    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-    file_handler.setFormatter(formatter)
-    logger.addHandler(file_handler)
+logger = setup_logger('DataLoader', '../data/logs/loading/data_loader.log')
 
 class DataLoader:
     def __init__(self, data_dir, output_dir):
@@ -31,9 +23,10 @@ class DataLoader:
             self.logger.info(f"Found {len(files)} CSV files in directory {self.data_dir}.")
 
             return files
+        
         except Exception as e:
             self.logger.error(f"Error accessing directory {self.data_dir}: {e}")
-
+            
             return []
 
     def _load_and_clean_file(self, file):
@@ -49,36 +42,40 @@ class DataLoader:
                     raw_data.append(row)
 
             self.logger.info(f"Loaded {len(raw_data)} rows from {file}.")
+
         except Exception as e:
             self.logger.error(f"Error loading file {file}: {e}")
-            
+
             return []
 
         cleaner = DataCleaner(raw_data)
         cleaned_data = cleaner.clean_data()
 
         self.logger.info(f"Cleaned data from {file}: {len(cleaned_data)} valid rows.")
-
+        
         return cleaned_data
 
     def load_data(self):
         """Load and concatenate all data files into a single cleaned dataset."""
         self.logger.info("Starting to load and clean data.")
-
+        
         files = self.get_file_list()
         if not files:
             self.logger.error("No files found to process.")
-
+            
             return self.data
 
-        with concurrent.futures.ThreadPoolExecutor() as executor:
+        start_time = time.time()
+        with concurrent.futures.ThreadPoolExecutor(max_workers=4) as executor:
             results = executor.map(self._load_and_clean_file, files)
 
         for result in results:
             self.data.extend(result)
 
-        self.logger.info(f"Finished loading and cleaning data. Total valid rows: {len(self.data)}.")
+        end_time = time.time()
 
+        self.logger.info(f"Finished loading and cleaning data in {end_time - start_time:.2f} seconds.")
+        
         return self.data
 
     def save_data_to_csv(self, file_name):
@@ -91,11 +88,11 @@ class DataLoader:
         if not os.path.exists(self.output_dir):
             try:
                 os.makedirs(self.output_dir)
-
                 self.logger.info(f"Created output directory: {self.output_dir}.")
+            
             except OSError as e:
                 self.logger.error(f"Error creating directory {self.output_dir}: {e}")
-
+                
                 return
 
         fieldnames = self.data[0].keys()
@@ -105,8 +102,12 @@ class DataLoader:
             with open(output_file, mode='w', newline='') as f:
                 writer = csv.DictWriter(f, fieldnames=fieldnames)
                 writer.writeheader()
-                writer.writerows(self.data)
+
+                # Write data in chunks to optimize memory usage
+                for i in range(0, len(self.data), 1000):  
+                    writer.writerows(self.data[i:i + 1000])
 
             self.logger.info(f"Data successfully written to {output_file}.")
+        
         except Exception as e:
             self.logger.error(f"Error writing to {output_file}: {e}")

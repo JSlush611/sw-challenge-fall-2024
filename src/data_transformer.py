@@ -1,23 +1,14 @@
 import os
 import csv
 from datetime import datetime, timedelta
-import logging
+from util import setup_logger
 
-logger = logging.getLogger('DataTransformer')
-logger.setLevel(logging.INFO)
-
-if not logger.handlers:
-    log_file = '../data/logs/transforming/data_transformer.log'
-    os.makedirs(os.path.dirname(log_file), exist_ok=True)
-    file_handler = logging.FileHandler(log_file, mode='w')
-    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-    file_handler.setFormatter(formatter)
-    logger.addHandler(file_handler)
+logger = setup_logger('DataTransformer', '../data/logs/transforming/data_transformer.log')
 
 class DataTransformer:
     def __init__(self, data=None):
         self.data = data if data else []
-        self.logger = logger  # Use the module-level logger
+        self.logger = logger  
 
     def set_data(self, new_data):
         """Set new data for transformation."""
@@ -47,7 +38,6 @@ class DataTransformer:
             raise ValueError(f"Invalid interval format: {interval}")
 
         self.logger.info(f"Parsed interval '{interval}' to timedelta: {time_units}.")
-
         return timedelta(
             days=time_units['d'],
             hours=time_units['h'],
@@ -59,9 +49,7 @@ class DataTransformer:
         """Filter data within the given time frame."""
         filtered_data = [
             row for row in self.data
-            if start_time <= datetime.strptime(
-                row['Timestamp'], '%Y-%m-%d %H:%M:%S.%f'
-            ) < end_time
+            if start_time <= datetime.strptime(row['Timestamp'], '%Y-%m-%d %H:%M:%S.%f') < end_time
         ]
         
         self.logger.info(
@@ -78,26 +66,35 @@ class DataTransformer:
         current_interval_start = start_time
         interval_delta = self.parse_interval(interval)
 
+        # User iter to avoid storing in extra lists
+        filtered_data_iter = iter(filtered_data)
+        try:
+            row = next(filtered_data_iter)
+        except StopIteration:
+            row = None
+
+        # For the start to end time we want to calculate the info for each interval
         while current_interval_start < end_time:
             current_interval_end = current_interval_start + interval_delta
-            interval_data = [
-                row for row in filtered_data
-                if current_interval_start <= datetime.strptime(
-                    row['Timestamp'], '%Y-%m-%d %H:%M:%S.%f'
-                ) < current_interval_end
-            ]
+            interval_rows = []
 
-            if interval_data:
-                open_price = float(interval_data[0]['Price'])
-                high_price = max(float(row['Price']) for row in interval_data)
-                low_price = min(float(row['Price']) for row in interval_data)
-                close_price = float(interval_data[-1]['Price'])
-                volume = sum(float(row['Size']) for row in interval_data)
+            # While the iter has another row in the range, add to interval rows
+            while row and current_interval_start <= datetime.strptime(row['Timestamp'], '%Y-%m-%d %H:%M:%S.%f') < current_interval_end:
+                interval_rows.append(row)
+                try:
+                    row = next(filtered_data_iter)
+                except StopIteration:
+                    row = None
+
+            if interval_rows:
+                open_price = interval_rows[0]['Price']
+                high_price = max(r['Price'] for r in interval_rows)
+                low_price = min(r['Price'] for r in interval_rows)
+                close_price = interval_rows[-1]['Price']
+                volume = sum(float(r['Size']) for r in interval_rows)
 
                 ohlcv_data.append({
-                    'Timestamp': current_interval_start.strftime(
-                        '%Y-%m-%d %H:%M:%S'
-                    ),
+                    'Timestamp': current_interval_start.strftime('%Y-%m-%d %H:%M:%S'),
                     'Open': open_price,
                     'High': high_price,
                     'Low': low_price,
@@ -106,8 +103,7 @@ class DataTransformer:
                 })
 
                 self.logger.info(
-                    f"OHLCV data calculated for interval starting at "
-                    f"{current_interval_start}."
+                    f"OHLCV data calculated for interval starting at {current_interval_start}."
                 )
 
             current_interval_start = current_interval_end
@@ -122,8 +118,7 @@ class DataTransformer:
 
         start_time_str = start_time.strftime('%Y%m%d_%H%M%S')
         end_time_str = end_time.strftime('%Y%m%d_%H%M%S')
-
-        file_name = (f"ohlcv_{start_time_str}_to_{end_time_str}_{interval}.csv")
+        file_name = f"ohlcv_{start_time_str}_to_{end_time_str}_{interval}.csv"
         file_path = os.path.join(output_dir, file_name)
 
         try:
@@ -133,5 +128,6 @@ class DataTransformer:
                 writer.writerows(ohlcv_data)
 
             self.logger.info(f"OHLCV data successfully saved to {file_path}.")
+
         except Exception as e:
             self.logger.error(f"Error writing OHLCV data to CSV: {e}")

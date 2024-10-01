@@ -1,8 +1,7 @@
 import os
-import logging
+from util import setup_logger
 
-logger = logging.getLogger('DataCleaner')
-logger.setLevel(logging.INFO)
+logger = setup_logger('DataCleaner', '../data/logs/cleaning/data_cleaning.log')
 
 if not logger.handlers:
     log_file = '../data/logs/cleaning/data_cleaning.log'
@@ -17,11 +16,7 @@ class DataCleaner:
         self.data = data if data else []
         self.min_valid_price = min_valid_price
         self.max_valid_price = max_valid_price
-        self.logger = logger 
-
-    def set_data(self, new_data):
-        """Reset the raw data with new data for cleaning."""
-        self.data = new_data
+        self.logger = logger
 
     def clean_data(self):
         """Apply all cleaning steps in a single pass and log issues found."""
@@ -30,7 +25,7 @@ class DataCleaner:
 
         for row in self.data:
             try:
-                # Check for missing values
+                # Check for missing values in 'Price' and 'Size' fields
                 if not row['Price'] or not row['Size']:
                     self.logger.info(f"Removed due to missing values: {row}")
 
@@ -43,7 +38,7 @@ class DataCleaner:
 
                     continue
 
-                if not (self.min_valid_price <= price <= self.max_valid_price):
+                if price < self.min_valid_price or price > self.max_valid_price:
                     self.logger.info(f"Removed due to outlier price: {row}")
 
                     continue
@@ -57,8 +52,9 @@ class DataCleaner:
                 seen_timestamps.add(row['Timestamp'])
                 cleaned_data.append(row)
 
-            except ValueError:
-                self.logger.error(f"Removed due to ValueError: {row}")
+            except ValueError as e:
+                # Log any issues with value conversion
+                self.logger.error(f"ValueError: {e} - Removed row: {row}")
 
                 continue
 
