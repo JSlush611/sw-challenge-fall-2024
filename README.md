@@ -75,10 +75,16 @@ OHLCV data successfully saved to 'ohlcv_20240916_100000_to_20240916_100100_15s.c
 3. Data Transformation (OHLCV): You will specify a start time, end time, and a time interval (e.g., "15s", "1m"). The tool will generate OHLCV bars for the specified time range across the intervals and save the output as a CSV file.
 
 **Assumptions and Limitations**:
-*Time Format:* Timestamps in the data must be in the format:    ```bashYYYY-MM-DD HH:MM:SS.ssssss.```
+*Time Format:* Timestamps in the data must be in the format:
+```bash
+YYYY-MM-DD HH:MM:SS
+```
 
-Data Consistency: It is assumed that the raw data is well-formed, with consistent timestamp formats.
+*Data Consistency:* It is assumed that the raw data is well-formed, with consistent timestamp formats.
 
-File Structure: CSV files should have the following fields: ```bashTimestamp, Price, Size.```
+*File Structure:* CSV files should have the following fields:
+```bash
+Timestamp, Price, Size
+```
 
-Performance Considerations: The tool is optimized for performance using multithreading and chunked writing, but performance may vary depending on system resources and dataset size.
+*Performance Considerations:* The tool is optimized for performance using multithreading and chunked writing, but performance may vary depending on system resources and dataset size.
