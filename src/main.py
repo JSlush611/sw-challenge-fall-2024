@@ -74,8 +74,11 @@ def main():
         return
 
     print("\nSaving OHLCV data...")
-    transformer.save_ohlcv_to_csv(ohlcv_data, start_time, end_time, interval)
-    print(f"OHLCV data successfully saved to '{output_file}'.")
+    start_time_str = start_time.strftime('%Y%m%d_%H%M%S')
+    end_time_str = end_time.strftime('%Y%m%d_%H%M%S')
+    file_name = f"ohlcv_{start_time_str}_to_{end_time_str}_{interval}.csv"
+    transformer.save_ohlcv_to_csv(ohlcv_data, start_time, end_time, interval, file_name)
+    print(f"OHLCV data successfully saved to ", file_name)
 
 if __name__ == "__main__":
     main()

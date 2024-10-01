@@ -112,14 +112,11 @@ class DataTransformer:
         
         return ohlcv_data
 
-    def save_ohlcv_to_csv(self, ohlcv_data, start_time, end_time, interval, output_dir='../data/ohlcv'):
+    def save_ohlcv_to_csv(self, ohlcv_data, start_time, end_time, interval, filename, output_dir='../data/ohlcv'):
         """Save OHLCV data to a CSV file."""
         os.makedirs(output_dir, exist_ok=True)
 
-        start_time_str = start_time.strftime('%Y%m%d_%H%M%S')
-        end_time_str = end_time.strftime('%Y%m%d_%H%M%S')
-        file_name = f"ohlcv_{start_time_str}_to_{end_time_str}_{interval}.csv"
-        file_path = os.path.join(output_dir, file_name)
+        file_path = os.path.join(output_dir, filename)
 
         try:
             with open(file_path, mode='w', newline='') as f:
