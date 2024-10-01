@@ -1,19 +1,23 @@
 import os
-import csv
-from datetime import datetime
 import logging
 
+logger = logging.getLogger('DataCleaner')
+logger.setLevel(logging.INFO)
+
+if not logger.handlers:
+    log_file = '../data/logs/cleaning/data_cleaning.log'
+    os.makedirs(os.path.dirname(log_file), exist_ok=True)
+    file_handler = logging.FileHandler(log_file, mode='w')
+    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    file_handler.setFormatter(formatter)
+    logger.addHandler(file_handler)
+
 class DataCleaner:
-    def __init__(self, data=None, min_valid_price=400, max_valid_price=500, log_file='../data/logs/data_cleaning.log'):
+    def __init__(self, data=None, min_valid_price=400, max_valid_price=500):
         self.data = data if data else []
         self.min_valid_price = min_valid_price
         self.max_valid_price = max_valid_price
-
-        logging.basicConfig(filename=log_file, 
-                            level=logging.INFO, 
-                            format='%(asctime)s - %(levelname)s - %(message)s',
-                            filemode='w')
-        self.logger = logging.getLogger()
+        self.logger = logger 
 
     def set_data(self, new_data):
         """Reset the raw data with new data for cleaning."""
@@ -26,37 +30,39 @@ class DataCleaner:
 
         for row in self.data:
             try:
-                # Check for missing values in 'Price' and 'Size' fields
+                # Check for missing values
                 if not row['Price'] or not row['Size']:
                     self.logger.info(f"Removed due to missing values: {row}")
+
                     continue
 
-                # Convert 'Price' to float once and check for negatives or outliers 
+                # Convert 'Price' to float and check validity
                 price = float(row['Price'])
                 if price <= 0:
-                    self.logger.info(f"Removed due to negative or zero price: {row}")
+                    self.logger.info(f"Removed due to non-positive price: {row}")
+
                     continue
 
-                if price < self.min_valid_price or price > self.max_valid_price:
+                if not (self.min_valid_price <= price <= self.max_valid_price):
                     self.logger.info(f"Removed due to outlier price: {row}")
+
                     continue
 
                 # Check for duplicate timestamps
                 if row['Timestamp'] in seen_timestamps:
                     self.logger.info(f"Removed due to duplicate timestamp: {row}")
+
                     continue
 
                 seen_timestamps.add(row['Timestamp'])
-
-                # Append the cleaned row to the cleaned_data list
                 cleaned_data.append(row)
 
             except ValueError:
-                # Handle any conversion errors (e.g., invalid float conversion)
                 self.logger.error(f"Removed due to ValueError: {row}")
+
                 continue
 
-        # Set the cleaned data back to the class attribute
         self.data = cleaned_data
+        self.logger.info(f"Data cleaning complete. Total valid rows: {len(self.data)}.")
 
         return self.data
