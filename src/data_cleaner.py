@@ -3,14 +3,6 @@ from util import setup_logger
 
 logger = setup_logger('DataCleaner', '../data/logs/cleaning/data_cleaning.log')
 
-if not logger.handlers:
-    log_file = '../data/logs/cleaning/data_cleaning.log'
-    os.makedirs(os.path.dirname(log_file), exist_ok=True)
-    file_handler = logging.FileHandler(log_file, mode='w')
-    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-    file_handler.setFormatter(formatter)
-    logger.addHandler(file_handler)
-
 class DataCleaner:
     def __init__(self, data=None, min_valid_price=400, max_valid_price=500):
         self.data = data if data else []
