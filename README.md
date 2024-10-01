@@ -26,7 +26,8 @@ Ensure the raw data files (CSV format) are stored in a directory (e.g., ../data/
 ### 3. **Run the program**:
 The program will interactively prompt you to enter the paths to your raw data directory, a directory to save the cleaned data, and the time range and interval for OHLCV generation.
 ```bash
-python3 src/main.py
+cd src
+python3 main.py
 ```
 
 **Sample Input/Output Interaction**:

@@ -1,0 +1,11 @@
+2024-10-01 16:02:45,961 - DataTransformer - INFO - Parsed interval '1h' to timedelta: {'d': 0, 'h': 1, 'm': 0, 's': 0}.
+2024-10-01 16:02:52,921 - DataTransformer - INFO - Filtered data from 2024-09-16 10:00:00 to 2024-09-16 16:00:00. Rows after filtering: 311470.
+2024-10-01 16:02:52,921 - DataTransformer - INFO - Parsed interval '1h' to timedelta: {'d': 0, 'h': 1, 'm': 0, 's': 0}.
+2024-10-01 16:02:53,119 - DataTransformer - INFO - OHLCV data calculated for interval starting at 2024-09-16 10:00:00.
+2024-10-01 16:02:53,325 - DataTransformer - INFO - OHLCV data calculated for interval starting at 2024-09-16 11:00:00.
+2024-10-01 16:02:53,523 - DataTransformer - INFO - OHLCV data calculated for interval starting at 2024-09-16 12:00:00.
+2024-10-01 16:02:53,726 - DataTransformer - INFO - OHLCV data calculated for interval starting at 2024-09-16 13:00:00.
+2024-10-01 16:02:53,928 - DataTransformer - INFO - OHLCV data calculated for interval starting at 2024-09-16 14:00:00.
+2024-10-01 16:02:54,129 - DataTransformer - INFO - OHLCV data calculated for interval starting at 2024-09-16 15:00:00.
+2024-10-01 16:02:54,129 - DataTransformer - INFO - OHLCV calculation complete. Total intervals: 6.
+2024-10-01 16:02:54,131 - DataTransformer - INFO - OHLCV data successfully saved to ../data/ohlcv/ohlcv_20240916_100000_to_20240916_160000_1h.csv.
